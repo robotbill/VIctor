@@ -5,18 +5,18 @@ import re
 import sys
 
 
-import villustrator.mode as vmode
-from villustrator.command_area import CommandArea
-from villustrator.keystroke import Keystrokes
-from villustrator.command import Command
-from villustrator.cursor import Cursor
+import victor.mode as vmode
+from victor.command_area import CommandArea
+from victor.keystroke import Keystrokes
+from victor.command import Command
+from victor.cursor import Cursor
 
 NormalCommand = collections.namedtuple("NormalCommand", ["regex", "run"])
 
-class VIllustratorApp(pyglet.window.Window):
+class VIctorApp(pyglet.window.Window):
 
     def __init__(self, *args, **kwargs):
-        super(VIllustratorApp, self).__init__(640, 400, caption="VI-llustrator")
+        super(VIctorApp, self).__init__(640, 400, caption="VI-llustrator")
 
         self.mode = vmode.COMMAND
 

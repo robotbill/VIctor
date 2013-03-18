@@ -1,6 +1,6 @@
 import pyglet
 
-from villustrator.settings import TEXT_STYLE
+from victor.settings import TEXT_STYLE
 
 class CommandArea(object):
     def __init__(self, x, y, width, batch):
