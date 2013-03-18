@@ -1,13 +1,17 @@
+import collections
 import pyglet
 import pyglet.window.key as pkey
+import re
 import sys
 
 
 import villustrator.mode as vmode
 from villustrator.command_area import CommandArea
-from villustrator.keystroke_display import KeystrokeDisplay
+from villustrator.keystroke import Keystrokes
 from villustrator.command import Command
 from villustrator.cursor import Cursor
+
+NormalCommand = collections.namedtuple("NormalCommand", ["regex", "run"])
 
 class VIllustratorApp(pyglet.window.Window):
 
@@ -18,12 +22,28 @@ class VIllustratorApp(pyglet.window.Window):
 
         self.batch = pyglet.graphics.Batch()
         self.command_area = CommandArea(0, 0, 550, self.batch)
-        self.keystrokes = KeystrokeDisplay(550, 0, 70, self.batch)
+        self.keystrokes = Keystrokes(550, 0, 70, self.batch)
         self.cursor = Cursor(320, 200, self.batch)
 
         self.keys_down = set()
+        self.marks = dict()
+
         self.is_movement_scheduled = False
         self.frame = 0
+
+        self.set_normal_commands()
+        self.set_ex_commands()
+
+    def set_normal_commands(self):
+        self.normal_commands = [
+            NormalCommand(re.compile("^m\w"), self.set_mark)
+        ]
+
+    def set_ex_commands(self):
+        self.ex_commands = {
+            "line": self.draw_line,
+            "marks": self.show_marks
+        }
 
     def set_mode(self, mode):
         if self.is_ex_mode():
@@ -36,8 +56,18 @@ class VIllustratorApp(pyglet.window.Window):
 
     def run_command(self):
         command = Command(self.command_area.text)
-        command.run()
+        if command.command in self.ex_commands:
+            self.ex_commands[command.command](*command.arguments)
         self.set_mode(vmode.COMMAND)
+
+    def run_normal_command(self):
+        if not self.keystrokes.text(): return
+
+        for command in self.normal_commands:
+            if command.regex.match(self.keystrokes.text()):
+                command.run(self.keystrokes.text())
+                self.keystrokes.clear_text()
+                return;
 
     def on_key_press(self, symbol, modifiers):
         is_mod_key = lambda key, mod: symbol == key and modifiers & mod
@@ -63,6 +93,8 @@ class VIllustratorApp(pyglet.window.Window):
                 self.move("left");
             elif symbol == pkey.L:
                 self.move("right");
+            else:
+                self.run_normal_command()
 
         self.keys_down.add(symbol)
 
@@ -106,6 +138,8 @@ class VIllustratorApp(pyglet.window.Window):
             self.cursor.move_left_fast()
         elif pkey.L in self.keys_down:
             self.cursor.move_right_fast()
+            #FIXME for some reason L doesn't clear these on it's own... find the real reason
+            self.keystrokes.clear_text()
 
     def on_text(self, text):
         if self.is_ex_mode():
@@ -117,10 +151,39 @@ class VIllustratorApp(pyglet.window.Window):
         if self.is_ex_mode():
             self.command_area.on_text_motion(motion)
 
+    def set_mark(self, text):
+        print "mark: {}".format(text[1])
+
+        self.marks[text[1]] = (self.cursor.x, self.cursor.y)
+        self.batch.add(1, pyglet.gl.GL_POINTS, None,
+            ('v2i', (self.cursor.x, self.cursor.y)),
+            ('c4B', (255, 0, 0, 255)))
+
+    def draw_line(self, *args):
+        if len(args) != 2:
+            self.error("line requires two arguments", args)
+        else:
+            print(args)
+            start = self.marks[args[0]]
+            end = self.marks[args[1]]
+
+            print "{}, {}".format(start, end)
+
+            self.batch.add(2, pyglet.gl.GL_LINES, None,
+                ('v2i', (start[0], start[1], end[0], end[1])),
+                ('c4B', (255, 0, 0, 255, 255, 0, 0, 255)))
+
+    def show_marks(self, *args):
+        for key, value in self.marks.iteritems():
+            print key, value
+
+    def error(self, *args):
+        print args
+
     def on_draw(self):
-        self.frame += 1
-        sys.stdout.write(" frame: %i\r" % self.frame)
-        sys.stdout.flush()
+#        self.frame += 1
+#        sys.stdout.write(" frame: %i\r" % self.frame)
+#        sys.stdout.flush()
 
         pyglet.gl.glClearColor(1, 1, 1, 1)
         self.clear()
