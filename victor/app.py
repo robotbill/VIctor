@@ -10,8 +10,7 @@ from victor.command_area import CommandArea
 from victor.keystroke import Keystrokes
 from victor.command import Command
 from victor.cursor import Cursor
-
-NormalCommand = collections.namedtuple("NormalCommand", ["regex", "run"])
+from victor.normal_command import run_normal_command
 
 class VIctorApp(pyglet.window.Window):
 
@@ -25,19 +24,12 @@ class VIctorApp(pyglet.window.Window):
         self.keystrokes = Keystrokes(550, 0, 70, self.batch)
         self.cursor = Cursor(320, 200, self.batch)
 
-        self.keys_down = set()
         self.marks = dict()
 
         self.is_movement_scheduled = False
         self.frame = 0
 
-        self.set_normal_commands()
         self.set_ex_commands()
-
-    def set_normal_commands(self):
-        self.normal_commands = [
-            NormalCommand(re.compile("^m\w"), self.set_mark)
-        ]
 
     def set_ex_commands(self):
         self.ex_commands = {
@@ -60,15 +52,6 @@ class VIctorApp(pyglet.window.Window):
             self.ex_commands[command.command](*command.arguments)
         self.set_mode(vmode.COMMAND)
 
-    def run_normal_command(self):
-        if not self.keystrokes.text(): return
-
-        for command in self.normal_commands:
-            if command.regex.match(self.keystrokes.text()):
-                command.run(self.keystrokes.text())
-                self.keystrokes.clear_text()
-                return;
-
     def on_key_press(self, symbol, modifiers):
         is_mod_key = lambda key, mod: symbol == key and modifiers & mod
 
@@ -82,64 +65,13 @@ class VIctorApp(pyglet.window.Window):
             if not self.is_command_mode(): self.set_mode(vmode.COMMAND)
             self.keystrokes.push_text("^[")
             pyglet.clock.schedule_once(self.keystrokes.clear_text, 1.0)
+
+            # don't close window
             return pyglet.event.EVENT_HANDLED
 
         elif self.is_command_mode():
-            if symbol == pkey.J:
-                self.move("down");
-            elif symbol == pkey.K:
-                self.move("up");
-            elif symbol == pkey.H:
-                self.move("left");
-            elif symbol == pkey.L:
-                self.move("right");
-            else:
-                self.run_normal_command()
+            run_normal_command(self)
 
-        self.keys_down.add(symbol)
-
-    def move(self, direction):
-        if direction == "up":
-            self.cursor.move_up()
-        elif direction == "down":
-            self.cursor.move_down()
-        elif direction == "left":
-            self.cursor.move_left()
-        elif direction == "right":
-            self.cursor.move_right()
-
-        self.schedule_movement_clock()
-        self.keystrokes.clear_text()
-
-    def schedule_movement_clock(self, dt=0.5):
-        if not self.is_movement_scheduled:
-            self.is_movement_scheduled = True
-            pyglet.clock.schedule_interval(self.movement, dt)
-
-    def stop_movement_schedule(self):
-        if self.is_movement_scheduled:
-            self.is_movement_scheduled = False
-            pyglet.clock.unschedule(self.movement)
-
-    def on_key_release(self, symbol, modifiers):
-        if symbol in self.keys_down:
-            self.keys_down.remove(symbol)
-        self.stop_movement_schedule()
-
-    def movement(self, dt):
-        self.stop_movement_schedule()
-        self.schedule_movement_clock(0.05)
-
-        if pkey.J in self.keys_down:
-            self.cursor.move_down_fast()
-        elif pkey.K in self.keys_down:
-            self.cursor.move_up_fast()
-        elif pkey.H in self.keys_down:
-            self.cursor.move_left_fast()
-        elif pkey.L in self.keys_down:
-            self.cursor.move_right_fast()
-            #FIXME for some reason L doesn't clear these on it's own... find the real reason
-            self.keystrokes.clear_text()
 
     def on_text(self, text):
         if self.is_ex_mode():
@@ -151,13 +83,8 @@ class VIctorApp(pyglet.window.Window):
         if self.is_ex_mode():
             self.command_area.on_text_motion(motion)
 
-    def set_mark(self, text):
-        print "mark: {}".format(text[1])
-
-        self.marks[text[1]] = (self.cursor.x, self.cursor.y)
-        self.batch.add(1, pyglet.gl.GL_POINTS, None,
-            ('v2i', (self.cursor.x, self.cursor.y)),
-            ('c4B', (255, 0, 0, 255)))
+    def current_position(self):
+        return (self.cursor.x, self.cursor.y)
 
     def draw_line(self, *args):
         if len(args) != 2:
