@@ -3,22 +3,24 @@ import pyglet
 import pyglet.window.key as pkey
 import re, sys
 
+from itertools import chain
+
 
 import victor.mode as vmode
 from victor.command_area import CommandArea
 from victor.cursor import Cursor
 from victor.keystroke import Keystrokes
-from victor.command import run_ex_command;
-from victor.normal_command import run_normal_command;
+from victor.command import run_ex_command
+from victor.normal_command import run_normal_command
 
-from victor.command import CommandException, register_ex_command, run_ex_command;
+from victor.command import CommandException, register_ex_command, run_ex_command
 
 class VIctorApp(pyglet.window.Window):
 
     def __init__(self, *args, **kwargs):
         super(VIctorApp, self).__init__(640, 400, caption="VI-llustrator")
 
-        self.mode = vmode.COMMAND
+        self.mode = vmode.NORMAL
 
         self.batch = pyglet.graphics.Batch()
         self.command_area = CommandArea(0, 0, 550, self.batch)
@@ -31,10 +33,17 @@ class VIctorApp(pyglet.window.Window):
         self.frame = 0
 
         self.set_ex_commands()
+        self.set_default_options()
 
     def set_ex_commands(self):
-        register_ex_command('line', self.draw_line);
-        register_ex_command('marks', self.show_marks);
+        register_ex_command('line', self.draw_line)
+        register_ex_command('marks', self.show_marks)
+        register_ex_command('set', self.set_option)
+
+    def set_default_options(self):
+        self.options = {}
+        self.options["color"] = (0, 0, 0, 255)
+        self.options["gridcolor"] = (0, 0, 255, 127)
 
     def set_mode(self, mode):
         if self.is_ex_mode():
@@ -46,9 +55,9 @@ class VIctorApp(pyglet.window.Window):
             self.command_area.focus()
 
     def run_command(self):
-        try: run_ex_command(self.command_area.text);
-        except CommandException as e: sys.stderr.write('%s\n' % str(e));
-        self.set_mode(vmode.COMMAND)
+        try: run_ex_command(self.command_area.text)
+        except CommandException as e: sys.stderr.write('%s\n' % str(e))
+        self.set_mode(vmode.NORMAL)
 
     def on_key_press(self, symbol, modifiers):
         is_mod_key = lambda key, mod: symbol == key and modifiers & mod
@@ -60,7 +69,7 @@ class VIctorApp(pyglet.window.Window):
             self.set_mode(vmode.EX)
 
         elif symbol == pkey.ESCAPE or is_mod_key(pkey.BRACKETLEFT, pkey.MOD_CTRL):
-            if not self.is_command_mode(): self.set_mode(vmode.COMMAND)
+            if not self.is_command_mode(): self.set_mode(vmode.NORMAL)
             self.keystrokes.push_text("^[")
             pyglet.clock.schedule_once(self.keystrokes.clear_text, 1.0)
 
@@ -93,11 +102,21 @@ class VIctorApp(pyglet.window.Window):
 
             self.batch.add(2, pyglet.gl.GL_LINES, None,
                 ('v2i', (start[0], start[1], end[0], end[1])),
-                ('c4B', (255, 0, 0, 255, 255, 0, 0, 255)))
+                ('c4B', tuple(chain(self.options["color"], self.options["color"]))))
 
     def show_marks(self, *args):
         for key, value in self.marks.iteritems():
             print key, value
+
+    def set_option(self, *args):
+        if len(args) < 2: raise CommandException("No option specified")
+
+        option = args[0]
+        if option == "color":
+            if len(args) != 5: raise CommandException("color must have 4 arguments")
+            self.options["color"] = tuple(map(int, args[1:]))
+        elif option == "gridcolor":
+            pass
 
     def error(self, *args):
         print args
@@ -112,7 +131,7 @@ class VIctorApp(pyglet.window.Window):
         self.batch.draw()
 
     def is_command_mode(self):
-        return self.mode == vmode.COMMAND
+        return self.mode == vmode.NORMAL
 
     def is_ex_mode(self):
         return self.mode == vmode.EX

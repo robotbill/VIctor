@@ -1,6 +1,6 @@
-COMMAND = 0x1
-EX      = 0x2
-INSERT  = 0x3
+NORMAL = 0x1
+EX     = 0x2
+INSERT = 0x3
 
 #some possiblities maybe?
 DRAW    = 0x4

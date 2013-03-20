@@ -14,7 +14,7 @@ def set_mark(app, match):
 
     app.batch.add(1, pyglet.gl.GL_POINTS, None,
         ('v2i', app.current_position()),
-        ('c4B', (255, 0, 0, 255)))
+        ('c4B', app.options["color"]))
 
 normal_commands = [
     NormalCommand(re.compile(r"^(?P<mult>\d*)(?P<dir>(?:j|k|h|l))"), move),
