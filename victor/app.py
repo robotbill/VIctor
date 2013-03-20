@@ -1,16 +1,17 @@
 import collections
 import pyglet
 import pyglet.window.key as pkey
-import re
-import sys
+import re, sys
 
 
 import victor.mode as vmode
 from victor.command_area import CommandArea
-from victor.keystroke import Keystrokes
-from victor.command import Command
 from victor.cursor import Cursor
-from victor.normal_command import run_normal_command
+from victor.keystroke import Keystrokes
+from victor.command import run_ex_command;
+from victor.normal_command import run_normal_command;
+
+from victor.command import CommandException, register_ex_command, run_ex_command;
 
 class VIctorApp(pyglet.window.Window):
 
@@ -32,10 +33,8 @@ class VIctorApp(pyglet.window.Window):
         self.set_ex_commands()
 
     def set_ex_commands(self):
-        self.ex_commands = {
-            "line": self.draw_line,
-            "marks": self.show_marks
-        }
+        register_ex_command('line', self.draw_line);
+        register_ex_command('marks', self.show_marks);
 
     def set_mode(self, mode):
         if self.is_ex_mode():
@@ -47,9 +46,8 @@ class VIctorApp(pyglet.window.Window):
             self.command_area.focus()
 
     def run_command(self):
-        command = Command(self.command_area.text)
-        if command.command in self.ex_commands:
-            self.ex_commands[command.command](*command.arguments)
+        try: run_ex_command(self.command_area.text);
+        except CommandException as e: sys.stderr.write('%s\n' % str(e));
         self.set_mode(vmode.COMMAND)
 
     def on_key_press(self, symbol, modifiers):
@@ -90,11 +88,8 @@ class VIctorApp(pyglet.window.Window):
         if len(args) != 2:
             self.error("line requires two arguments", args)
         else:
-            print(args)
             start = self.marks[args[0]]
             end = self.marks[args[1]]
-
-            print "{}, {}".format(start, end)
 
             self.batch.add(2, pyglet.gl.GL_LINES, None,
                 ('v2i', (start[0], start[1], end[0], end[1])),

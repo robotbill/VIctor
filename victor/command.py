@@ -1,12 +1,16 @@
-class Command(object):
-    def __init__(self, text):
-        tokens = self.tokenize(text)
-        self.command = tokens[0].strip()
-        self.arguments = [ s.strip() for s in tokens[1:] ]
+__all__ = ['CommandException', 'register_ex_command', 'run_ex_command'];
 
-    def run(self):
-        print "Running {} with {}".format(self.command, self.arguments)
+ex_commands = { };
 
-    def tokenize(self, text):
-        return text[1:].split(" ")
+class CommandException(BaseException):
+    pass;
 
+def run_ex_command(command_line):
+    tokens = command_line[1:].split();
+
+    f = ex_commands.get(tokens[0], None);
+    if f is None: raise CommandException('unable to find command {}'.format(tokens[0]));
+    return f(*tokens[1:]);
+
+def register_ex_command(command, f):
+    ex_commands[command] = f;
