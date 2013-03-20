@@ -10,15 +10,16 @@ import victor.mode as vmode
 from victor.command_area import CommandArea
 from victor.cursor import Cursor
 from victor.keystroke import Keystrokes
-from victor.command import run_ex_command
 from victor.normal_command import run_normal_command
+from victor.movement_grid import MovementGrid;
 
 from victor.command import CommandException, register_ex_command, run_ex_command
 
 class VIctorApp(pyglet.window.Window):
-
     def __init__(self, *args, **kwargs):
-        super(VIctorApp, self).__init__(640, 400, caption="VI-llustrator")
+        super(VIctorApp, self).__init__(640, 400, caption="victor")
+
+        self.set_default_options()
 
         self.mode = vmode.NORMAL
 
@@ -27,13 +28,15 @@ class VIctorApp(pyglet.window.Window):
         self.keystrokes = Keystrokes(550, 0, 70, self.batch)
         self.cursor = Cursor(320, 200, self.batch)
 
+        self.grid = MovementGrid(640, 400, self.options['gridcolor']);
+        self.grid.reset_batch();
+
         self.marks = dict()
 
         self.is_movement_scheduled = False
         self.frame = 0
 
         self.set_ex_commands()
-        self.set_default_options()
 
     def set_ex_commands(self):
         register_ex_command('line', self.draw_line)
@@ -128,6 +131,7 @@ class VIctorApp(pyglet.window.Window):
 
         pyglet.gl.glClearColor(1, 1, 1, 1)
         self.clear()
+        self.grid.draw();
         self.batch.draw()
 
     def is_command_mode(self):
