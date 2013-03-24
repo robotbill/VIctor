@@ -1,11 +1,21 @@
 import pyglet.window.key as pkey;
 
+__all__ = [
+    'construct_dispatcher',
+    'ON_KEY_PRESS',
+    'ON_KEY_RELEASE',
+    'TIMER_FIRE',
+];
+
 ON_KEY_PRESS   = 0x01;
 ON_KEY_RELEASE = 0x02;
 TIMER_FIRE     = 0x03;
 
 def init_state(gen, app, event):
     out = gen(app, event);
+
+    if out is None: return None
+
     next(out);
     return out;
 
@@ -20,7 +30,7 @@ def moving(app, event):
 
     while True:
         event = yield
-        if (event == (ON_KEY_RELEASE, pkey.H)): return
+        if (event == (ON_KEY_RELEASE, d)): return
         elif (event == (TIMER_FIRE,)): pass
 
 def marking(app, event):
@@ -35,6 +45,9 @@ def marking(app, event):
                 app.marks[available[event[1]]] = app.cursor.position;
             return;
 
+def toggle_grid(app, event):
+    app.grid.visible = not app.grid.visible;
+
 def default_state(app, event):
     event_map = {
         (ON_KEY_PRESS, pkey.J): moving,
@@ -42,6 +55,7 @@ def default_state(app, event):
         (ON_KEY_PRESS, pkey.H): moving,
         (ON_KEY_PRESS, pkey.L): moving,
         (ON_KEY_PRESS, pkey.M): marking,
+        (ON_KEY_PRESS, pkey.G): toggle_grid,
     };
 
     current_state = None
@@ -54,11 +68,6 @@ def default_state(app, event):
             except StopIteration: current_state = None
         elif event in event_map:
             current_state = init_state(event_map[event], app, event)
-    
-class NormalDispatcher(object):
-    def __init__(self, app):
-        self.app = app;
-        self.current_state = default_state;
-    
-    def transition(self, event):
-        self.current_state = self.current_state(app, event);
+
+def construct_dispatcher(app):
+    return init_state(default_state, app, None);

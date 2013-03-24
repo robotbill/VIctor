@@ -10,10 +10,12 @@ import victor.mode as vmode
 from victor.command_area import CommandArea
 from victor.cursor import Cursor
 from victor.keystroke import Keystrokes
-from victor.normal_command import run_normal_command
+#from victor.normal_command import run_normal_command
 from victor.movement_grid import MovementGrid;
 
 from victor.command import CommandException, register_ex_command, run_ex_command
+
+import victor.normal_dispatcher as vnd;
 
 class VIctorApp(pyglet.window.Window):
     def __init__(self, *args, **kwargs):
@@ -32,6 +34,8 @@ class VIctorApp(pyglet.window.Window):
         self.grid.reset_batch();
 
         self.marks = dict()
+
+        self.normal_dispatcher = vnd.construct_dispatcher(self);
 
         self.is_movement_scheduled = False
         self.frame = 0
@@ -75,19 +79,23 @@ class VIctorApp(pyglet.window.Window):
             if not self.is_command_mode(): self.set_mode(vmode.NORMAL)
             self.keystrokes.push_text("^[")
             pyglet.clock.schedule_once(self.keystrokes.clear_text, 1.0)
+            self.normal_dispatcher = vnd.construct_dispatcher(self);
 
             # don't close window
             return pyglet.event.EVENT_HANDLED
 
         elif self.is_command_mode():
-            run_normal_command(self)
-
+            self.normal_dispatcher.send((vnd.ON_KEY_PRESS, symbol));
+    
+    def on_key_release(self, symbol, modifiers):
+        if self.is_command_mode():
+            self.normal_dispatcher.send((vnd.ON_KEY_RELEASE, symbol));
 
     def on_text(self, text):
         if self.is_ex_mode():
             self.command_area.on_text(text)
-        elif self.is_command_mode():
-            self.keystrokes.push_text(text)
+        # elif self.is_command_mode():
+        #     self.keystrokes.push_text(text)
 
     def on_text_motion(self, motion):
         if self.is_ex_mode():
