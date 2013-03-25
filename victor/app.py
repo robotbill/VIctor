@@ -85,11 +85,11 @@ class VIctorApp(pyglet.window.Window):
             return pyglet.event.EVENT_HANDLED
 
         elif self.is_command_mode():
-            self.normal_dispatcher.send((vnd.ON_KEY_PRESS, symbol));
+            self.normal_dispatcher.send(vnd.NormalEvent(vnd.ON_KEY_PRESS, symbol, modifiers));
     
     def on_key_release(self, symbol, modifiers):
         if self.is_command_mode():
-            self.normal_dispatcher.send((vnd.ON_KEY_RELEASE, symbol));
+            self.normal_dispatcher.send(vnd.NormalEvent(vnd.ON_KEY_RELEASE, symbol, modifiers));
 
     def on_text(self, text):
         if self.is_ex_mode():
