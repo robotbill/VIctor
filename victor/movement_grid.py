@@ -1,5 +1,6 @@
 import pyglet;
 from itertools import chain;
+from victor.vector import *;
 
 __all__ = ['MovementGrid'];
 
@@ -39,7 +40,6 @@ class MovementGrid(object):
     def draw(self):
         if self.batch and self.visible: self.batch.draw();
     
-    
     def scale_up(self):
         self.scale = min(self.scale + 1, len(scales) - 1);
         self.reset_batch();
@@ -48,22 +48,22 @@ class MovementGrid(object):
         self.scale = max(self.scale - 1, 0);
         self.reset_batch();
 
-    def clamp_left_down(self, x, y):
+    def clamp_left_down(self, pos):
         scale = scales[self.scale];
-        return scale * (x // scale), scale * (y // scale);
+        return scale * (pos // scale);
 
-    def up(self, x, y):
+    def up(self, pos):
         scale = scales[self.scale];
-        return self.clamp_left_down(x, y + scale);
+        return self.clamp_left_down(pos + vec2f(0., scale));
 
-    def right(self, x, y):
+    def right(self, pos):
         scale = scales[self.scale];
-        return self.clamp_left_down(x + scale, y);
+        return self.clamp_left_down(pos + vec2f(scale, 0));
 
-    def left(self, x, y):
+    def left(self, pos):
         scale = scales[self.scale];
-        return self.clamp_left_down(x - .01, y);
+        return self.clamp_left_down(pos - vec2f(.01, 0));
 
-    def down(self, x, y):
+    def down(self, pos):
         scale = scales[self.scale];
-        return self.clamp_left_down(x, y - .01);
+        return self.clamp_left_down(pos - vec2f(0, .01));

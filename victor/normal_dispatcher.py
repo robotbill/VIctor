@@ -1,4 +1,5 @@
 import pyglet.window.key as pkey;
+from victor.vector import *;
 
 __all__ = [
     'construct_dispatcher',
@@ -23,10 +24,12 @@ def moving(app, event):
     pos = app.cursor.position;
     d = event[1]
 
-    if d == pkey.J: app.cursor.position = tuple(map(int, app.grid.down(*pos)));
-    elif d == pkey.K: app.cursor.position = tuple(map(int, app.grid.up(*pos)));
-    elif d == pkey.H: app.cursor.position = tuple(map(int, app.grid.left(*pos)));
-    elif d == pkey.L: app.cursor.position = tuple(map(int, app.grid.right(*pos)));
+    if d == pkey.J: app.cursor.position = vec2i(*app.grid.down(pos));
+    elif d == pkey.K: app.cursor.position = vec2i(*app.grid.up(pos));
+    elif d == pkey.H: app.cursor.position = vec2i(*app.grid.left(pos));
+    elif d == pkey.L: app.cursor.position = vec2i(*app.grid.right(pos));
+
+    print app.cursor.position;
 
     while True:
         event = yield

@@ -3,17 +3,17 @@ import pyglet.window.key as pkey
 
 import victor.normal_dispatcher as dispatcher
 from victor.normal_dispatcher import *
+from victor.vector import *;
     
 class MockGrid(object):
     def __init__(self):
-        self.direction = None
         self.visible = False
 
-    def left(self, x, y): 
-        return (x-1, y)
+    def left(self, pos): 
+        return pos - vec2i(1, 0);
 
 class MockCursor(object):
-    def __init__(self, position=(0, 0)):
+    def __init__(self, position = vec2i()):
         self.position = position
 
 class MockApp(object):
@@ -28,19 +28,20 @@ class NormalDispatcherTest(unittest.TestCase):
 
         state = dispatcher.init_state(dispatcher.default_state, app, None);
         state.send((ON_KEY_PRESS, pkey.H))
-        self.assertEqual(app.cursor.position, (-1, 0))
+        self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
 
     def test_set_mark(self):
         app = MockApp();
-        app.cursor.position = (314, 159);
+        app.cursor.position = vec2i(314, 159);
+        print app.cursor.position;
 
         state = dispatcher.init_state(dispatcher.default_state, app, None);
         state.send((ON_KEY_PRESS, pkey.M));
         state.send((ON_KEY_RELEASE, pkey.M));
         state.send((ON_KEY_PRESS, pkey.B));
 
-        app.cursor.position = (0, 0);
-        self.assertEqual(app.marks['b'], (314, 159));
+        app.cursor.position = vec2i(0, 0);
+        self.assertTrue(all(app.marks['b'] == vec2i(314, 159)));
 
     def test_toggle_on(self):
         app = MockApp();
