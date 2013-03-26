@@ -75,10 +75,14 @@ def toggle_grid(app, event):
     app.grid.visible = not app.grid.visible;
 
 def scale_grid(app, event):
-    if event.modifiers & pkey.MOD_SHIFT:
-        app.grid.scale_up()
-    else:
-        app.grid.scale_down()
+    if event.modifiers & pkey.MOD_SHIFT: app.grid.scale_up()
+    else: app.grid.scale_down()
+
+def start_path(app, event):
+    app.start_path();
+
+def append_to_path(app, event):
+    app.append_path();
 
 def default_state(app, event):
     event_map = {
@@ -90,6 +94,8 @@ def default_state(app, event):
         NormalEvent(ON_KEY_PRESS, pkey.G): toggle_grid,
         NormalEvent(ON_KEY_PRESS, pkey.S): scale_grid,
         NormalEvent(ON_KEY_PRESS, pkey.S, pkey.MOD_SHIFT): scale_grid,
+		NormalEvent(ON_KEY_PRESS, pkey.B): start_path,
+		NormalEvent(ON_KEY_PRESS, pkey.A): append_to_path,
     };
 
     current_state = None

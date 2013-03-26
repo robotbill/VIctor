@@ -5,15 +5,14 @@ import re, sys, time
 
 from itertools import chain
 
-
 import victor.mode as vmode
 from victor.command_area import CommandArea
 from victor.cursor import Cursor
 from victor.keystroke import Keystrokes
-#from victor.normal_command import run_normal_command
 from victor.movement_grid import MovementGrid;
 
 from victor.command import CommandException, register_ex_command, run_ex_command
+from victor.path import Path;
 
 import victor.normal_dispatcher as vnd;
 
@@ -36,6 +35,13 @@ class VIctorApp(pyglet.window.Window):
         self.marks = dict()
 
         self.normal_dispatcher = vnd.construct_dispatcher(self);
+
+        self.current_path = None;
+        self.paths = [ ];
+
+        self.is_movement_scheduled = False
+        self.frame = 0
+
         self.set_ex_commands()
 
         self.time = time.time()
@@ -107,7 +113,15 @@ class VIctorApp(pyglet.window.Window):
 
     def current_position(self):
         return (self.cursor.x, self.cursor.y)
-
+    
+    def start_path(self):
+        self.current_path = Path(self.cursor.position);
+        self.paths.append(self.current_path);
+    
+    def append_path(self):
+        if self.current_path:
+            self.current_path.append(self.cursor.position);
+    
     def draw_line(self, *args):
         if len(args) != 2:
             self.error("line requires two arguments", args)
@@ -134,7 +148,7 @@ class VIctorApp(pyglet.window.Window):
             pass
 
     def error(self, *args):
-        print args
+        print args;
 
     def on_draw(self):
 #        self.frame += 1
@@ -145,6 +159,9 @@ class VIctorApp(pyglet.window.Window):
         self.clear()
         self.grid.draw();
         self.batch.draw()
+
+        for path in self.paths:
+            path.draw();
 
     def is_normal_mode(self):
         return self.mode == vmode.NORMAL
