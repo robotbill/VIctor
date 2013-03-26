@@ -39,18 +39,25 @@ def init_state(gen, app, event):
 def moving(app, event):
     pos = app.cursor.position;
     d = event.key
+    time = app.time
+    delta = 0.1
+    fast_move_delay = 0.5
 
-    if d == pkey.J: app.cursor.position = vec2i(*app.grid.down(pos));
-    elif d == pkey.K: app.cursor.position = vec2i(*app.grid.up(pos));
-    elif d == pkey.H: app.cursor.position = vec2i(*app.grid.left(pos));
-    elif d == pkey.L: app.cursor.position = vec2i(*app.grid.right(pos));
+    def move_cursor(multiplier=1):
+        if d == pkey.J: app.cursor.position = vec2i(*app.grid.down(pos, multiplier));
+        elif d == pkey.K: app.cursor.position = vec2i(*app.grid.up(pos, multiplier));
+        elif d == pkey.H: app.cursor.position = vec2i(*app.grid.left(pos, multiplier));
+        elif d == pkey.L: app.cursor.position = vec2i(*app.grid.right(pos, multiplier));
 
-    print app.cursor.position;
+    move_cursor()
 
     while True:
         event = yield
         if (event == NormalEvent(ON_KEY_RELEASE, d)): return
-        elif (event == NormalEvent(TIMER_FIRE,)): pass
+        elif (event == NormalEvent(TIMER_FIRE,)):
+            if app.time - time > fast_move_delay:
+                multiplier = 2 + (app.time - time - fast_move_delay)//delta
+                move_cursor(multiplier)
 
 def marking(app, event):
     alphabet = map(chr, range(ord('a'), ord('z')));
@@ -90,6 +97,7 @@ def default_state(app, event):
     while True:
         event = yield
 
+
         if current_state is not None:
             try: current_state.send(event)
             except StopIteration: current_state = None
@@ -97,4 +105,29 @@ def default_state(app, event):
             current_state = init_state(event_map[event], app, event)
 
 def construct_dispatcher(app):
+    """
+        Constructs and returns an event dispatching state machine.
+
+        The default_state accepts a NormalEvent, looks it up then transitions
+        to the state that will handle it.
+
+        Once a "current_state" is defined the event is forwarded to it for
+        handling.
+
+        A state can be either a function that does some work then returns None
+        or a function that may or may not do work, then returns a generator.
+        Both should have the prototype "def state_name(app, event)." The former
+        will imediately return back to the default state after doing its work.
+        The latter (possibly) does work then waits for the next event.
+
+        Typical structure of a generator returning state:
+
+            def state(app, event):
+                # do stuff
+                while True:
+                    event = yield;
+                    # handle events
+                    if is_done_handling_events_event: return
+
+    """
     return init_state(default_state, app, None);

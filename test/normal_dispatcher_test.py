@@ -10,8 +10,8 @@ class MockGrid(object):
         self.visible = False
         self.scale = 1
 
-    def left(self, pos): 
-        return pos - vec2i(1, 0);
+    def left(self, pos, multiplier):
+        return pos - vec2i(1 * multiplier, 0);
 
     def scale_down(self):
         self.scale -= 1
@@ -28,6 +28,7 @@ class MockApp(object):
         self.cursor = MockCursor()
         self.grid = MockGrid()
         self.marks = { };
+        self.time = 0
 
 class NormalDispatcherTest(unittest.TestCase):
     def test_move_command(self):
@@ -37,10 +38,44 @@ class NormalDispatcherTest(unittest.TestCase):
         state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
         self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
 
+    def test_fast_move(self):
+        app = MockApp()
+        app.time = 0
+
+        state = dispatcher.init_state(dispatcher.default_state, app, None);
+        state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
+        self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
+
+        app.time = 0.498
+        state.send(NormalEvent(TIMER_FIRE));
+        self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
+
+        app.time = 0.51
+        state.send(NormalEvent(TIMER_FIRE));
+        self.assertTrue(all(app.cursor.position == vec2i(-2, 0)))
+
+        app.time = 0.71
+        state.send(NormalEvent(TIMER_FIRE));
+        self.assertTrue(all(app.cursor.position == vec2i(-4, 0)))
+
+    def test_fast_move_doesnt_keep_moving_after_key_release(self):
+        app = MockApp()
+        app.time = 0
+
+        state = dispatcher.init_state(dispatcher.default_state, app, None);
+        state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
+        self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
+
+        state.send(NormalEvent(ON_KEY_RELEASE, pkey.H))
+
+        app.time = 0.71
+        state.send(NormalEvent(TIMER_FIRE));
+        self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
+
+
     def test_set_mark(self):
         app = MockApp();
         app.cursor.position = vec2i(314, 159);
-        print app.cursor.position;
 
         state = dispatcher.init_state(dispatcher.default_state, app, None);
         state.send(NormalEvent(ON_KEY_PRESS, pkey.M));

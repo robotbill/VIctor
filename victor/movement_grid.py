@@ -39,11 +39,11 @@ class MovementGrid(object):
 
     def draw(self):
         if self.batch and self.visible: self.batch.draw();
-    
+
     def scale_up(self):
         self.scale = min(self.scale + 1, len(scales) - 1);
         self.reset_batch();
-    
+
     def scale_down(self):
         self.scale = max(self.scale - 1, 0);
         self.reset_batch();
@@ -52,18 +52,18 @@ class MovementGrid(object):
         scale = scales[self.scale];
         return scale * (pos // scale);
 
-    def up(self, pos):
+    def up(self, pos, multiplier=1):
         scale = scales[self.scale];
-        return self.clamp_left_down(pos + vec2f(0., scale));
+        return self.clamp_left_down(pos + vec2f(0., scale * multiplier));
 
-    def right(self, pos):
+    def right(self, pos, multiplier=1):
         scale = scales[self.scale];
-        return self.clamp_left_down(pos + vec2f(scale, 0));
+        return self.clamp_left_down(pos + vec2f(scale * multiplier, 0));
 
-    def left(self, pos):
+    def left(self, pos, multiplier=1):
         scale = scales[self.scale];
-        return self.clamp_left_down(pos - vec2f(.01, 0));
+        return self.clamp_left_down(pos - vec2f(.01 + scale*(multiplier - 1), 0));
 
-    def down(self, pos):
+    def down(self, pos, multiplier=1):
         scale = scales[self.scale];
-        return self.clamp_left_down(pos - vec2f(0, .01));
+        return self.clamp_left_down(pos - vec2f(0, .01 + scale*(multiplier - 1)));
