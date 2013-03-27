@@ -32,6 +32,7 @@ class MockApp(object):
         self.grid = MockGrid()
         self.marks = { };
         self.time = 0
+        self.current_multiplier = None
 
 class NormalDispatcherTest(unittest.TestCase):
     def test_move_command(self):
@@ -45,7 +46,7 @@ class NormalDispatcherTest(unittest.TestCase):
         app = MockApp()
         app.time = 0
 
-        state = dispatcher.init_state(dispatcher.default_state, app, None);
+        state = dispatcher.init_state(dispatcher.default_state, app, None)
         state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
         self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
 
@@ -65,7 +66,7 @@ class NormalDispatcherTest(unittest.TestCase):
         app = MockApp()
         app.time = 0
 
-        state = dispatcher.init_state(dispatcher.default_state, app, None);
+        state = dispatcher.init_state(dispatcher.default_state, app, None)
         state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
         self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
 
@@ -74,6 +75,32 @@ class NormalDispatcherTest(unittest.TestCase):
         app.time = 0.71
         state.send(NormalEvent(TIMER_FIRE));
         self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
+
+    def test_multipliers(self):
+        app = MockApp()
+
+        state = dispatcher.init_state(dispatcher.default_state, app, None)
+        state.send(NormalEvent(ON_KEY_PRESS, pkey._1))
+        state.send(NormalEvent(ON_KEY_PRESS, pkey._0))
+        state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
+        self.assertTrue(all(app.cursor.position == vec2i(-10, 0)))
+
+    def test_multipliers_fast_move_starts_at_jump(self):
+        app = MockApp()
+        app.time = 0
+
+        state = dispatcher.init_state(dispatcher.default_state, app, None)
+        state.send(NormalEvent(ON_KEY_PRESS, pkey._2))
+        state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
+        self.assertTrue(all(app.cursor.position == vec2i(-2, 0)))
+
+        app.time = 0.51
+        state.send(NormalEvent(TIMER_FIRE))
+        self.assertTrue(all(app.cursor.position == vec2i(-3, 0)))
+
+        app.time = 0.61
+        state.send(NormalEvent(TIMER_FIRE))
+        self.assertTrue(all(app.cursor.position == vec2i(-8, 0)))
 
 
     def test_set_mark(self):

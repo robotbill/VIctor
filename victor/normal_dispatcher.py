@@ -43,6 +43,7 @@ def moving(app, event):
     time = app.time
     delta = 0.1
     fast_move_delay = 0.5
+    jump = app.current_multiplier or 1
 
     def move_cursor(multiplier=1):
         if d == pkey.J: app.cursor.position = vec2i(*app.grid.down(pos, multiplier));
@@ -50,14 +51,15 @@ def moving(app, event):
         elif d == pkey.H: app.cursor.position = vec2i(*app.grid.left(pos, multiplier));
         elif d == pkey.L: app.cursor.position = vec2i(*app.grid.right(pos, multiplier));
 
-    move_cursor()
+    move_cursor(jump)
+    jump += 1
 
     while True:
         event = yield
         if (event == NormalEvent(ON_KEY_RELEASE, d)): return
         elif (event == NormalEvent(TIMER_FIRE,)):
             if app.time - time > fast_move_delay:
-                multiplier = 2 + ((app.time - time - fast_move_delay)//delta)*5
+                multiplier = jump + ((app.time - time - fast_move_delay)//delta)*5
                 move_cursor(multiplier)
 
 def marking(app, event):
@@ -85,6 +87,33 @@ def start_path(app, event):
 def append_to_path(app, event):
     app.append_path();
 
+digit_keys = {
+    pkey._0: 0,
+    pkey._1: 1,
+    pkey._2: 2,
+    pkey._3: 3,
+    pkey._4: 4,
+    pkey._5: 5,
+    pkey._6: 6,
+    pkey._7: 7,
+    pkey._8: 8,
+    pkey._9: 9,
+    pkey.NUM_0: 0,
+    pkey.NUM_1: 1,
+    pkey.NUM_2: 2,
+    pkey.NUM_3: 3,
+    pkey.NUM_4: 4,
+    pkey.NUM_5: 5,
+    pkey.NUM_6: 6,
+    pkey.NUM_7: 7,
+    pkey.NUM_8: 8,
+    pkey.NUM_9: 9
+}
+
+def is_digit_keypress_event(event):
+    return (event.type == ON_KEY_PRESS and event.key in digit_keys
+            and not event.modifiers)
+
 def default_state(app, event):
     event_map = {
         NormalEvent(ON_KEY_PRESS, pkey.J): moving,
@@ -95,8 +124,8 @@ def default_state(app, event):
         NormalEvent(ON_KEY_PRESS, pkey.G): toggle_grid,
         NormalEvent(ON_KEY_PRESS, pkey.S): scale_grid,
         NormalEvent(ON_KEY_PRESS, pkey.S, pkey.MOD_SHIFT): scale_grid,
-		NormalEvent(ON_KEY_PRESS, pkey.B): start_path,
-		NormalEvent(ON_KEY_PRESS, pkey.A): append_to_path,
+        NormalEvent(ON_KEY_PRESS, pkey.B): start_path,
+        NormalEvent(ON_KEY_PRESS, pkey.A): append_to_path,
     };
 
     current_state = None
@@ -104,12 +133,17 @@ def default_state(app, event):
     while True:
         event = yield
 
-
         if current_state is not None:
             try: current_state.send(event)
             except StopIteration: current_state = None
         elif event in event_map:
             current_state = init_state(event_map[event], app, event)
+            app.current_multiplier = None
+        elif is_digit_keypress_event(event):
+            if not app.current_multiplier: app.current_multiplier = 0
+            else: app.current_multiplier *= 10
+
+            app.current_multiplier += digit_keys[event.key]
 
 def construct_dispatcher(app):
     """

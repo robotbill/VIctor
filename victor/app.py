@@ -34,19 +34,17 @@ class VIctorApp(pyglet.window.Window):
 
         self.marks = dict()
 
+        self.current_multiplier = None
         self.normal_dispatcher = vnd.construct_dispatcher(self);
+        self.set_ex_commands()
 
         self.current_path = None;
         self.paths = [ ];
 
-        self.is_movement_scheduled = False
-        self.frame = 0
-
-        self.set_ex_commands()
-
         self.time = time.time()
         pyglet.clock.schedule_interval(self.on_timer_fire, .05)
-#        self.frame = 0
+
+        self.frame = 0
 
     def set_ex_commands(self):
         register_ex_command('line', self.draw_line)
