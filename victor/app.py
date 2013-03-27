@@ -1,5 +1,6 @@
 import collections
 import pyglet
+import pyglet.gl as gl
 import pyglet.window.key as pkey
 import re, sys, time
 
@@ -44,6 +45,9 @@ class VIctorApp(pyglet.window.Window):
         self.time = time.time()
         pyglet.clock.schedule_interval(self.on_timer_fire, .05)
 
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+        gl.glEnable(gl.GL_BLEND)
+
     def set_ex_commands(self):
         register_ex_command('line', self.draw_line)
         register_ex_command('marks', self.show_marks)
@@ -52,7 +56,7 @@ class VIctorApp(pyglet.window.Window):
     def set_default_options(self):
         self.options = {}
         self.options["color"] = (0, 0, 0, 255)
-        self.options["gridcolor"] = (0, 0, 255, 127)
+        self.options["gridcolor"] = (0, 0, 255, 50)
 
     def set_mode(self, mode):
         if self.is_ex_mode():

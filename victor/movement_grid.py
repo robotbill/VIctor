@@ -4,7 +4,7 @@ from victor.vector import *;
 
 __all__ = ['MovementGrid'];
 
-scales = (1, 5, 10, 25, 50, 100);
+scales = (1, 5, 10, 20, 40, 80);
 
 class MovementGrid(object):
     def __init__(self, width, height, color = (127, 127, 127 , 127)):  
