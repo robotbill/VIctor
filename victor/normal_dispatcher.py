@@ -1,4 +1,5 @@
 import pyglet.window.key as pkey;
+
 from victor.vector import *;
 
 __all__ = [
@@ -56,7 +57,7 @@ def moving(app, event):
         if (event == NormalEvent(ON_KEY_RELEASE, d)): return
         elif (event == NormalEvent(TIMER_FIRE,)):
             if app.time - time > fast_move_delay:
-                multiplier = 2 + (app.time - time - fast_move_delay)//delta
+                multiplier = 2 + ((app.time - time - fast_move_delay)//delta)*5
                 move_cursor(multiplier)
 
 def marking(app, event):
@@ -72,7 +73,7 @@ def marking(app, event):
             return;
 
 def toggle_grid(app, event):
-    app.grid.visible = not app.grid.visible;
+    app.grid.toggle_visibility()
 
 def scale_grid(app, event):
     if event.modifiers & pkey.MOD_SHIFT: app.grid.scale_up()

@@ -4,7 +4,7 @@ from victor.vector import *;
 
 __all__ = ['MovementGrid'];
 
-scales = (5, 10, 25, 50, 100);
+scales = (1, 5, 10, 25, 50, 100);
 
 class MovementGrid(object):
     def __init__(self, width, height, color = (127, 127, 127 , 127)):  
@@ -12,7 +12,7 @@ class MovementGrid(object):
         self.width = width;
         self.height = height;
 
-        self.scale = 2;
+        self.scale = 3;
 
         self.visible = True;
         self.batch = None;
@@ -40,12 +40,21 @@ class MovementGrid(object):
     def draw(self):
         if self.batch and self.visible: self.batch.draw();
 
+    def toggle_visibility(self):
+        if self.scale == 0: self.scale_up()
+        elif self.scale == 1: self.scale_down()
+        else: self.visible = not self.visible
+
     def scale_up(self):
         self.scale = min(self.scale + 1, len(scales) - 1);
+        if self.scale >= 1 and not self.visible: self.visible = True
+
         self.reset_batch();
 
     def scale_down(self):
         self.scale = max(self.scale - 1, 0);
+        if self.scale < 1 and self.visible: self.visible = False
+
         self.reset_batch();
 
     def clamp_left_down(self, pos):

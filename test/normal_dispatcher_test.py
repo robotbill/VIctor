@@ -19,6 +19,9 @@ class MockGrid(object):
     def scale_up(self):
         self.scale += 1
 
+    def toggle_visibility(self):
+        self.visible = not self.visible
+
 class MockCursor(object):
     def __init__(self, position = vec2i()):
         self.position = position
@@ -56,7 +59,7 @@ class NormalDispatcherTest(unittest.TestCase):
 
         app.time = 0.71
         state.send(NormalEvent(TIMER_FIRE));
-        self.assertTrue(all(app.cursor.position == vec2i(-4, 0)))
+        self.assertTrue(all(app.cursor.position == vec2i(-12, 0)))
 
     def test_fast_move_doesnt_keep_moving_after_key_release(self):
         app = MockApp()
