@@ -1,10 +1,11 @@
 import unittest
 import pyglet.window.key as pkey
+from numpy.testing.utils import assert_array_equal
 
 import victor.normal_dispatcher as dispatcher
 from victor.normal_dispatcher import *
 from victor.vector import *;
-    
+
 class MockGrid(object):
     def __init__(self):
         self.visible = False
@@ -40,7 +41,7 @@ class NormalDispatcherTest(unittest.TestCase):
 
         state = dispatcher.init_state(dispatcher.default_state, app, None);
         state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
-        self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-1, 0))
 
     def test_fast_move(self):
         app = MockApp()
@@ -48,19 +49,23 @@ class NormalDispatcherTest(unittest.TestCase):
 
         state = dispatcher.init_state(dispatcher.default_state, app, None)
         state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
-        self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-1, 0))
 
         app.time = 0.498
         state.send(NormalEvent(TIMER_FIRE));
-        self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-1, 0))
 
         app.time = 0.51
         state.send(NormalEvent(TIMER_FIRE));
-        self.assertTrue(all(app.cursor.position == vec2i(-2, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-2, 0))
 
         app.time = 0.71
         state.send(NormalEvent(TIMER_FIRE));
-        self.assertTrue(all(app.cursor.position == vec2i(-12, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-6, 0))
+
+        app.time = 0.81
+        state.send(NormalEvent(TIMER_FIRE));
+        assert_array_equal(app.cursor.position, vec2i(-11, 0))
 
     def test_fast_move_doesnt_keep_moving_after_key_release(self):
         app = MockApp()
@@ -68,13 +73,13 @@ class NormalDispatcherTest(unittest.TestCase):
 
         state = dispatcher.init_state(dispatcher.default_state, app, None)
         state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
-        self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-1, 0))
 
         state.send(NormalEvent(ON_KEY_RELEASE, pkey.H))
 
         app.time = 0.71
         state.send(NormalEvent(TIMER_FIRE));
-        self.assertTrue(all(app.cursor.position == vec2i(-1, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-1, 0))
 
     def test_multipliers(self):
         app = MockApp()
@@ -83,7 +88,7 @@ class NormalDispatcherTest(unittest.TestCase):
         state.send(NormalEvent(ON_KEY_PRESS, pkey._1))
         state.send(NormalEvent(ON_KEY_PRESS, pkey._0))
         state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
-        self.assertTrue(all(app.cursor.position == vec2i(-10, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-10, 0))
 
     def test_multipliers_fast_move_starts_at_jump(self):
         app = MockApp()
@@ -92,15 +97,15 @@ class NormalDispatcherTest(unittest.TestCase):
         state = dispatcher.init_state(dispatcher.default_state, app, None)
         state.send(NormalEvent(ON_KEY_PRESS, pkey._2))
         state.send(NormalEvent(ON_KEY_PRESS, pkey.H))
-        self.assertTrue(all(app.cursor.position == vec2i(-2, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-2, 0))
 
         app.time = 0.51
         state.send(NormalEvent(TIMER_FIRE))
-        self.assertTrue(all(app.cursor.position == vec2i(-3, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-3, 0))
 
         app.time = 0.61
         state.send(NormalEvent(TIMER_FIRE))
-        self.assertTrue(all(app.cursor.position == vec2i(-8, 0)))
+        assert_array_equal(app.cursor.position, vec2i(-4, 0))
 
 
     def test_set_mark(self):
@@ -113,7 +118,7 @@ class NormalDispatcherTest(unittest.TestCase):
         state.send(NormalEvent(ON_KEY_PRESS, pkey.B));
 
         app.cursor.position = vec2i(0, 0);
-        self.assertTrue(all(app.marks['b'] == vec2i(314, 159)));
+        assert_array_equal(app.marks['b'], vec2i(314, 159))
 
     def test_toggle_on(self):
         app = MockApp();

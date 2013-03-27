@@ -59,7 +59,7 @@ def moving(app, event):
         if (event == NormalEvent(ON_KEY_RELEASE, d)): return
         elif (event == NormalEvent(TIMER_FIRE,)):
             if app.time - time > fast_move_delay:
-                multiplier = jump + ((app.time - time - fast_move_delay)//delta)*5
+                multiplier = jump + pow(((app.time - time - fast_move_delay)//delta), 2)
                 move_cursor(multiplier)
 
 def marking(app, event):

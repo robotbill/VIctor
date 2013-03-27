@@ -44,8 +44,6 @@ class VIctorApp(pyglet.window.Window):
         self.time = time.time()
         pyglet.clock.schedule_interval(self.on_timer_fire, .05)
 
-        self.frame = 0
-
     def set_ex_commands(self):
         register_ex_command('line', self.draw_line)
         register_ex_command('marks', self.show_marks)
@@ -149,9 +147,8 @@ class VIctorApp(pyglet.window.Window):
         print args;
 
     def on_draw(self):
-#        self.frame += 1
-#        sys.stdout.write(" frame: %i\r" % self.frame)
-#        sys.stdout.flush()
+        sys.stdout.write(" frame rate: %i\r" % pyglet.clock.get_fps())
+        sys.stdout.flush()
 
         pyglet.gl.glClearColor(1, 1, 1, 1)
         self.clear()
