@@ -1,6 +1,7 @@
 import pyglet.window.key as pkey;
 
 from victor.vector import *;
+from victor import path;
 
 __all__ = [
     'construct_dispatcher',
@@ -82,10 +83,12 @@ def scale_grid(app, event):
     else: app.grid.scale_down()
 
 def start_path(app, event):
-    app.start_path();
+    p = path.Path(app.cursor.position, app.options['color']);
+    app.current_path = app.current_group.append_path(p);
 
-def append_to_path(app, event):
-    app.append_path();
+def append_path(app, event):
+    if app.current_path:
+        app.current_path.append(app.cursor.position);
 
 digit_keys = {
     pkey._0: 0,
@@ -125,7 +128,7 @@ def default_state(app, event):
         NormalEvent(ON_KEY_PRESS, pkey.S): scale_grid,
         NormalEvent(ON_KEY_PRESS, pkey.S, pkey.MOD_SHIFT): scale_grid,
         NormalEvent(ON_KEY_PRESS, pkey.B): start_path,
-        NormalEvent(ON_KEY_PRESS, pkey.A): append_to_path,
+        NormalEvent(ON_KEY_PRESS, pkey.A): append_path,
     };
 
     current_state = None

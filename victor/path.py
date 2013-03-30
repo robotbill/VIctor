@@ -3,7 +3,6 @@ from victor.vector import *;
 
 __all__ = [ 'Path' ];
 
-
 def _pairwise(seq):
     from itertools import tee, izip;
     a, b = tee(iter(seq)); 
@@ -11,11 +10,10 @@ def _pairwise(seq):
     return izip(a, b);
 
 class Path(object):
-    def __init__(self, pos):
+    def __init__(self, pos, color = (0, 0, 0, 255)):
         self.points = [ (0., pos) ];
+        self.color = color;
         self.batch = None;
-        self.color = (0, 0, 0, 255);
-        self.visible = True;
     
     def append(self, p):
         self.points.append((self.points[-1][0] + 1., p));
@@ -28,15 +26,11 @@ class Path(object):
     
     def approximate(self):
         return [ vec2i(*p) for t, p in self.points ];
-    
-    def draw(self):
-        if self.batch and self.visible:
-            self.batch.draw()
-    
+
     def reset_batch(self):
         from itertools import islice, cycle, chain;
-        batch = pyglet.graphics.Batch();
 
+        batch = pyglet.graphics.Batch();
         points = self.approximate();
 
         batch.add(
@@ -46,3 +40,6 @@ class Path(object):
         );
 
         self.batch = batch;
+
+    def draw(self, batch = None):
+        if self.batch: self.batch.draw();
