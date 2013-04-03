@@ -14,6 +14,7 @@ __all__ = [
 ON_KEY_PRESS   = 0x01;
 ON_KEY_RELEASE = 0x02;
 TIMER_FIRE     = 0x03;
+ESCAPE         = 0x04;
 
 class NormalEvent(object):
     def __init__(self, type, key=None, modifiers=0x0):
@@ -133,20 +134,41 @@ def default_state(app, event):
 
     current_state = None
 
+    def reset():
+        current_state = None
+        app.keystrokes.set_clear_time(app.time)
+
     while True:
         event = yield
 
-        if current_state is not None:
-            try: current_state.send(event)
-            except StopIteration: current_state = None
+        if event == NormalEvent(ESCAPE):
+            reset()
+            app.current_multiplier = None
+
+        elif current_state is not None:
+            try:
+                current_state.send(event)
+            except StopIteration:
+                current_state = None
+                app.keystrokes.set_clear_time(app.time)
+            else:
+                app.keystrokes.is_clear_pending = False
+
         elif event in event_map:
+            reset()
             current_state = init_state(event_map[event], app, event)
             app.current_multiplier = None
+
         elif is_digit_keypress_event(event):
             if not app.current_multiplier: app.current_multiplier = 0
             else: app.current_multiplier *= 10
-
             app.current_multiplier += digit_keys[event.key]
+
+        elif event.type is ON_KEY_PRESS:
+            reset()
+            app.current_multiplier = None
+
+        app.keystrokes.clear_text(app.time)
 
 def construct_dispatcher(app):
     """

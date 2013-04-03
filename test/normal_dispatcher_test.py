@@ -27,10 +27,18 @@ class MockCursor(object):
     def __init__(self, position = vec2i()):
         self.position = position
 
+class MockKeystrokes(object):
+    def __init__(self):
+        self.is_clear_pending = False
+
+    def clear_text(self, *args): pass
+    def set_clear_time(self, *args): pass
+
 class MockApp(object):
     def __init__(self):
         self.cursor = MockCursor()
         self.grid = MockGrid()
+        self.keystrokes = MockKeystrokes()
         self.marks = { };
         self.time = 0
         self.current_multiplier = None

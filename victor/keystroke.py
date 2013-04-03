@@ -18,18 +18,30 @@ class Keystrokes(object):
         self.layout.anchor_x = "left"
         self.layout.anchor_y = "bottom"
 
+        self.is_clear_pending = False
+        self.clear_time = 0
+        self.clear_delay = 1.0
+
     def text(self):
         return self.document.text
 
     def push_text(self, text):
+        if self.is_clear_pending:
+            self.clear_text()
+            self.is_clear_pending = False
+
         if text == ":":
             self.clear_text()
         else:
             self.document.text += text
 
+    def set_clear_time(self, time):
+        self.is_clear_pending = True
+        self.clear_time = time + self.clear_delay
 
-    def clear_text(self, *optional_args):
-        self.document.text = ""
-
-
+    def clear_text(self, time=None):
+        if time is None:
+            self.document.text = ""
+        else:
+            if time >= self.clear_time and self.is_clear_pending: self.document.text = ""
 

@@ -91,8 +91,7 @@ class VIctorApp(pyglet.window.Window):
         elif symbol == pkey.ESCAPE or is_mod_key(pkey.BRACKETLEFT, pkey.MOD_CTRL):
             if not self.is_normal_mode(): self.set_mode(vmode.NORMAL)
             self.keystrokes.push_text("^[")
-            pyglet.clock.schedule_once(self.keystrokes.clear_text, 1.0)
-            self.normal_dispatcher = vnd.construct_dispatcher(self);
+            self.normal_dispatcher.send(vnd.NormalEvent(vnd.ESCAPE))
 
             # don't close window
             return pyglet.event.EVENT_HANDLED
@@ -107,8 +106,8 @@ class VIctorApp(pyglet.window.Window):
     def on_text(self, text):
         if self.is_ex_mode():
             self.command_area.on_text(text)
-        # elif self.is_normal_mode():
-        #     self.keystrokes.push_text(text)
+        elif self.is_normal_mode():
+            self.keystrokes.push_text(text)
 
     def on_text_motion(self, motion):
         if self.is_ex_mode():
@@ -116,7 +115,15 @@ class VIctorApp(pyglet.window.Window):
 
     def current_position(self):
         return (self.cursor.x, self.cursor.y)
-    
+
+    def start_path(self):
+        self.current_path = Path(self.cursor.position);
+        self.paths.append(self.current_path);
+
+    def append_path(self):
+        if self.current_path:
+            self.current_path.append(self.cursor.position);
+
     def draw_line(self, *args):
         if len(args) != 2:
             self.error("line requires two arguments", args)
@@ -146,9 +153,6 @@ class VIctorApp(pyglet.window.Window):
         print args;
 
     def on_draw(self):
-        sys.stdout.write(" frame rate: %i\r" % pyglet.clock.get_fps())
-        sys.stdout.flush()
-
         pyglet.gl.glClearColor(1, 1, 1, 1)
         self.clear()
         self.grid.draw();
