@@ -147,5 +147,9 @@ class NormalDispatcherTest(unittest.TestCase):
         state.send(NormalEvent(ON_KEY_PRESS, pkey.S, pkey.MOD_SHIFT))
         self.assertEqual(app.grid.scale, 2)
 
+    def test_instantiating_normal_event_strips_num_lock_modifier(self):
+        event = NormalEvent(ON_KEY_PRESS, pkey.A, pkey.MOD_NUMLOCK)
+        self.assertFalse(event.modifiers)
+
 if __name__ == '__main__':
     unittest.main();

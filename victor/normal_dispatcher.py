@@ -22,6 +22,12 @@ class NormalEvent(object):
         self.key = key
         self.modifiers = modifiers
 
+        self._strip_unwanted_modifiers()
+
+    def _strip_unwanted_modifiers(self):
+        if self.modifiers:
+            self.modifiers &= ~pkey.MOD_NUMLOCK
+
     def __eq__(self, other):
         return (self.type == other.type
                 and self.key == other.key
