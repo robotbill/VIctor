@@ -42,6 +42,14 @@ class MockApp(object):
         self.marks = { };
         self.time = 0
         self.current_multiplier = None
+        self.down_action = None
+        self.dispatch_both_was_called = False
+
+    def switch_to_ex_mode(self, on_key_press=False):
+        pass
+
+    def dispatch_both(self):
+        self.dispatch_both_was_called = True
 
 class NormalDispatcherTest(unittest.TestCase):
     def test_move_command(self):
@@ -147,9 +155,49 @@ class NormalDispatcherTest(unittest.TestCase):
         state.send(NormalEvent(ON_KEY_PRESS, pkey.S, pkey.MOD_SHIFT))
         self.assertEqual(app.grid.scale, 2)
 
+    def test_switch_to_ex_mode(self):
+        app = MockApp()
+        state = dispatcher.init_state(dispatcher.default_state, app, None)
+        state.send(NormalEvent(ON_KEY_PRESS, pkey.COLON))
+        self.assertEqual(app.down_action, app.switch_to_ex_mode)
+        self.assertTrue(app.dispatch_both_was_called)
+
+    def test_switch_to_ex_mode__semi_colon_and_shift(self):
+        app = MockApp()
+        state = dispatcher.init_state(dispatcher.default_state, app, None)
+        state.send(NormalEvent(ON_KEY_PRESS, pkey.SEMICOLON, pkey.MOD_SHIFT))
+        self.assertEqual(app.down_action, app.switch_to_ex_mode)
+        self.assertTrue(app.dispatch_both_was_called)
+
     def test_instantiating_normal_event_strips_num_lock_modifier(self):
         event = NormalEvent(ON_KEY_PRESS, pkey.A, pkey.MOD_NUMLOCK)
         self.assertFalse(event.modifiers)
+
+    def test_certain_modifier_key_presses_do_not_change_state(self):
+        app = MockApp()
+        state = dispatcher.init_state(dispatcher.default_state, app, None)
+        state.send(NormalEvent(ON_KEY_PRESS, pkey.M))
+        current_state = state.gi_frame.f_locals['current_state']
+        self.assertEqual(current_state.__name__, 'marking')
+
+        keys = [
+            pkey.LSHIFT, pkey.RSHIFT,
+            pkey.LCTRL, pkey.RCTRL,
+            pkey.CAPSLOCK,
+            pkey.LMETA, pkey.RMETA,
+            pkey.LALT, pkey.RALT,
+            pkey.LWINDOWS, pkey.RWINDOWS,
+            pkey.LCOMMAND, pkey.RCOMMAND,
+            pkey.LOPTION, pkey.ROPTION
+        ]
+
+        for key in keys:
+            state.send(NormalEvent(ON_KEY_PRESS, key))
+            current_state = state.gi_frame.f_locals['current_state']
+            self.assertIsNotNone(current_state,
+                    msg="{} has changed the state".format(pkey.symbol_string(key)))
+            self.assertEqual(current_state.__name__, 'marking',
+                    msg="current_state was changed by {}".format(pkey.symbol_string(key)))
 
 if __name__ == '__main__':
     unittest.main();

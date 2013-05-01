@@ -97,6 +97,10 @@ def append_path(app, event):
     if app.current_path:
         app.current_path.append(app.cursor.position);
 
+def switch_to_ex_mode(app, event):
+    app.down_action = app.switch_to_ex_mode
+    app.dispatch_both()
+
 digit_keys = {
     pkey._0: 0,
     pkey._1: 1,
@@ -120,22 +124,42 @@ digit_keys = {
     pkey.NUM_9: 9
 }
 
+modifier_keys = [
+    pkey.LSHIFT,
+    pkey.RSHIFT,
+    pkey.LCTRL,
+    pkey.RCTRL,
+    pkey.CAPSLOCK,
+    pkey.LMETA,
+    pkey.RMETA,
+    pkey.LALT,
+    pkey.RALT,
+    pkey.LWINDOWS,
+    pkey.RWINDOWS,
+    pkey.LCOMMAND,
+    pkey.RCOMMAND,
+    pkey.LOPTION,
+    pkey.ROPTION
+]
+
 def is_digit_keypress_event(event):
     return (event.type == ON_KEY_PRESS and event.key in digit_keys
             and not event.modifiers)
 
 def default_state(app, event):
     event_map = {
+        NormalEvent(ON_KEY_PRESS, pkey.A): append_path,
+        NormalEvent(ON_KEY_PRESS, pkey.B): start_path,
+        NormalEvent(ON_KEY_PRESS, pkey.COLON): switch_to_ex_mode,
+        NormalEvent(ON_KEY_PRESS, pkey.G): toggle_grid,
+        NormalEvent(ON_KEY_PRESS, pkey.H): moving,
         NormalEvent(ON_KEY_PRESS, pkey.J): moving,
         NormalEvent(ON_KEY_PRESS, pkey.K): moving,
-        NormalEvent(ON_KEY_PRESS, pkey.H): moving,
         NormalEvent(ON_KEY_PRESS, pkey.L): moving,
         NormalEvent(ON_KEY_PRESS, pkey.M): marking,
-        NormalEvent(ON_KEY_PRESS, pkey.G): toggle_grid,
         NormalEvent(ON_KEY_PRESS, pkey.S): scale_grid,
         NormalEvent(ON_KEY_PRESS, pkey.S, pkey.MOD_SHIFT): scale_grid,
-        NormalEvent(ON_KEY_PRESS, pkey.B): start_path,
-        NormalEvent(ON_KEY_PRESS, pkey.A): append_path,
+        NormalEvent(ON_KEY_PRESS, pkey.SEMICOLON, pkey.MOD_SHIFT): switch_to_ex_mode,
     };
 
     current_state = None
@@ -150,6 +174,9 @@ def default_state(app, event):
         if event == NormalEvent(ESCAPE):
             reset()
             app.current_multiplier = None
+
+        elif event.key in modifier_keys:
+            continue
 
         elif current_state is not None:
             try:
