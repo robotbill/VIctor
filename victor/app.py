@@ -91,11 +91,8 @@ class VIctorApp(pyglet.window.Window):
         if self.down_action is None: return
         if self.text_event is None: return
 
-        self.on_both_text_and_key()
-        self.down_action = self.text_event = None
-
-    def on_both_text_and_key(self):
         self.down_action()
+        self.down_action = self.text_event = None
 
     def on_key_press(self, symbol, modifiers):
         is_mod_key = lambda key, mod: symbol == key and modifiers & mod
@@ -119,13 +116,13 @@ class VIctorApp(pyglet.window.Window):
             self.normal_dispatcher.send(vnd.NormalEvent(vnd.ON_KEY_RELEASE, symbol, modifiers));
 
     def on_text(self, text):
-        if text == ':':
-            self.text_event = text
-            self.dispatch_both()
-
         if self.is_ex_mode():
             self.command_area.on_text(text)
         elif self.is_normal_mode():
+            if text == ':':
+                self.text_event = text
+                self.dispatch_both()
+
             self.keystrokes.push_text(text)
 
     def on_text_motion(self, motion):
