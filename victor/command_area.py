@@ -1,5 +1,6 @@
 import pyglet
 
+import pyglet.window.key as pkey
 from victor.settings import TEXT_STYLE
 
 class CommandArea(object):
@@ -15,6 +16,8 @@ class CommandArea(object):
 
         self.caret = pyglet.text.caret.Caret(self.layout)
 
+        self.has_focus = False
+
         self.layout.x = x
         self.layout.y = y
         self.layout.anchor_x = "left"
@@ -26,17 +29,21 @@ class CommandArea(object):
 
     def focus(self):
         self.caret.visible = True
-        self.caret.mark = 1
         self.document.text = ":"
         self.caret.position = len(self.document.text)
+        self.has_focus = True
 
     def unfocus(self):
         self.caret.visible = False
         self.caret.position = 0
         self.document.text = ""
+        self.has_focus = False
 
     def on_text(self, text):
         self.caret.on_text(text)
 
     def on_text_motion(self, motion):
         self.caret.on_text_motion(motion)
+
+        if motion == pkey.MOTION_BACKSPACE and self.caret.position == 0:
+            self.has_focus = False

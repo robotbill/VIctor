@@ -124,7 +124,7 @@ digit_keys = {
     pkey.NUM_9: 9
 }
 
-modifier_keys = [
+modifier_keys = {
     pkey.LSHIFT,
     pkey.RSHIFT,
     pkey.LCTRL,
@@ -140,7 +140,7 @@ modifier_keys = [
     pkey.RCOMMAND,
     pkey.LOPTION,
     pkey.ROPTION
-]
+}
 
 def is_digit_keypress_event(event):
     return (event.type == ON_KEY_PRESS and event.key in digit_keys

@@ -118,6 +118,8 @@ class VIctorApp(pyglet.window.Window):
     def on_text(self, text):
         if self.is_ex_mode():
             self.command_area.on_text(text)
+            if not self.command_area.text:
+                self.set_mode(vmode.NORMAL)
         elif self.is_normal_mode():
             if text == ':':
                 self.text_event = text
@@ -128,6 +130,9 @@ class VIctorApp(pyglet.window.Window):
     def on_text_motion(self, motion):
         if self.is_ex_mode():
             self.command_area.on_text_motion(motion)
+
+            if not self.command_area.has_focus:
+                self.set_mode(vmode.NORMAL)
 
     def current_position(self):
         return (self.cursor.x, self.cursor.y)
