@@ -1,1 +1,38 @@
-This is in the very early stages, the code is ugly and nothing works.
+# VIctor
+
+VIctor is a vector drawing application in the style of Vim.
+
+VIctor is still in the very early stages. There are few features and a strong possibility of bugs.
+
+## Requirements
+* Pyglet http://www.pyglet.org -- On OS X 1.2alpha or the latest from mercurial is required
+* Numpy http://www.numpy.org 
+* Mock https://pypi.python.org/pypi/mock -- Required for tests
+* Currently built for Python 2.7x
+
+## To Run
+
+1. Install the dependencies
+2. cd victor
+3. python victor.py
+
+## Commands
+
+### Normal Mode
+
+* [count]{motion} -- Move Cursor count in direction of motion
+    * motion can be any of h, j, k, or l
+* m{a-zA-Z} -- Set Mark
+* g -- Toggle Grid On/Off
+* s -- Scale Grid Down
+* S -- Scale Grid Up
+* b -- Start Path
+* a -- Append to Path
+* : -- Switch to EX mode
+
+
+### EX Mode
+
+* :line [a-zA-Z] [a-zA-Z] -- Draw a line between two marks
+* :marks --Print marks in the console
+* :set color r g b a -- Set Line Color. r,g,b,a <- [0-255]
