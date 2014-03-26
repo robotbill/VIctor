@@ -1,7 +1,7 @@
-import pyglet.window.key as pkey;
+import pyglet.window.key as pkey
 
-from victor.vector import *;
-from victor import path;
+from victor.vector import *
+from victor import path
 
 __all__ = [
     'construct_dispatcher',
@@ -9,12 +9,12 @@ __all__ = [
     'ON_KEY_PRESS',
     'ON_KEY_RELEASE',
     'TIMER_FIRE',
-];
+]
 
-ON_KEY_PRESS   = 0x01;
-ON_KEY_RELEASE = 0x02;
-TIMER_FIRE     = 0x03;
-ESCAPE         = 0x04;
+ON_KEY_PRESS   = 0x01
+ON_KEY_RELEASE = 0x02
+TIMER_FIRE     = 0x03
+ESCAPE         = 0x04
 
 class NormalEvent(object):
     def __init__(self, type, key=None, modifiers=0x0):
@@ -38,15 +38,17 @@ class NormalEvent(object):
 
 
 def init_state(gen, app, event):
-    out = gen(app, event);
-
+    out = gen(app, event)
     if out is None: return None
-
-    next(out);
-    return out;
+    next(out)
+    return out
 
 def moving(app, event):
-    pos = app.cursor.position;
+    """
+    Move the cursor. Holding down the key continues movement and velocity increases
+    quadratically after a short delay.
+    """
+    pos = app.cursor.position
     d = event.key
     time = app.time
     delta = 0.1
@@ -54,10 +56,10 @@ def moving(app, event):
     jump = app.current_multiplier or 1
 
     def move_cursor(multiplier=1):
-        if d == pkey.J: app.cursor.position = vec2i(*app.grid.down(pos, multiplier));
-        elif d == pkey.K: app.cursor.position = vec2i(*app.grid.up(pos, multiplier));
-        elif d == pkey.H: app.cursor.position = vec2i(*app.grid.left(pos, multiplier));
-        elif d == pkey.L: app.cursor.position = vec2i(*app.grid.right(pos, multiplier));
+        if d == pkey.J: app.cursor.position = vec2i(*app.grid.down(pos, multiplier))
+        elif d == pkey.K: app.cursor.position = vec2i(*app.grid.up(pos, multiplier))
+        elif d == pkey.H: app.cursor.position = vec2i(*app.grid.left(pos, multiplier))
+        elif d == pkey.L: app.cursor.position = vec2i(*app.grid.right(pos, multiplier))
 
     move_cursor(jump)
     jump += 1
@@ -71,33 +73,52 @@ def moving(app, event):
                 move_cursor(multiplier)
 
 def marking(app, event):
-    alphabet = map(chr, range(ord('a'), ord('z')));
-    available = { getattr(pkey, ch.upper()) : ch for ch in alphabet };
+    """
+    [a-zA-Z] Set a mark at the current cursor position
+    """
+    alphabet = map(chr, range(ord('a'), ord('z')))
+    available = { getattr(pkey, ch.upper()) : ch for ch in alphabet }
 
     while True:
-        event = yield;
+        event = yield
 
         if event.type == ON_KEY_PRESS:
             if event.key in available:
-                app.marks[available[event.key]] = app.cursor.position;
-            return;
+                app.marks[available[event.key]] = app.cursor.position
+            return
 
 def toggle_grid(app, event):
+    """
+    Toggle the visibility of the grid
+    """
     app.grid.toggle_visibility()
 
 def scale_grid(app, event):
+    """
+    Scale the grid
+    """
     if event.modifiers & pkey.MOD_SHIFT: app.grid.scale_up()
     else: app.grid.scale_down()
 
 def start_path(app, event):
-    p = path.Path(app.cursor.position, app.options['color']);
-    app.current_path = app.current_group.append_path(p);
+    """
+    Start a new path
+    """
+    p = path.Path(app.cursor.position, app.options['color'])
+    app.current_path = app.current_group.append_path(p)
 
 def append_path(app, event):
+    """
+    Append a point to a path and connect it to the
+    last point of the path with a line
+    """
     if app.current_path:
-        app.current_path.append(app.cursor.position);
+        app.current_path.append(app.cursor.position)
 
 def switch_to_ex_mode(app, event):
+    """
+    Switch to EX Mode
+    """
     app.down_action = app.switch_to_ex_mode
     app.dispatch_both()
 
@@ -142,25 +163,32 @@ modifier_keys = {
     pkey.ROPTION
 }
 
+event_map = {
+    NormalEvent(ON_KEY_PRESS, pkey.A): append_path,
+    NormalEvent(ON_KEY_PRESS, pkey.B): start_path,
+    NormalEvent(ON_KEY_PRESS, pkey.COLON): switch_to_ex_mode,
+    NormalEvent(ON_KEY_PRESS, pkey.G): toggle_grid,
+    NormalEvent(ON_KEY_PRESS, pkey.H): moving,
+    NormalEvent(ON_KEY_PRESS, pkey.J): moving,
+    NormalEvent(ON_KEY_PRESS, pkey.K): moving,
+    NormalEvent(ON_KEY_PRESS, pkey.L): moving,
+    NormalEvent(ON_KEY_PRESS, pkey.M): marking,
+    NormalEvent(ON_KEY_PRESS, pkey.S): scale_grid,
+    NormalEvent(ON_KEY_PRESS, pkey.S, pkey.MOD_SHIFT): scale_grid,
+    NormalEvent(ON_KEY_PRESS, pkey.SEMICOLON, pkey.MOD_SHIFT): switch_to_ex_mode,
+}
+
 def is_digit_keypress_event(event):
     return (event.type == ON_KEY_PRESS and event.key in digit_keys
             and not event.modifiers)
 
 def default_state(app, event):
-    event_map = {
-        NormalEvent(ON_KEY_PRESS, pkey.A): append_path,
-        NormalEvent(ON_KEY_PRESS, pkey.B): start_path,
-        NormalEvent(ON_KEY_PRESS, pkey.COLON): switch_to_ex_mode,
-        NormalEvent(ON_KEY_PRESS, pkey.G): toggle_grid,
-        NormalEvent(ON_KEY_PRESS, pkey.H): moving,
-        NormalEvent(ON_KEY_PRESS, pkey.J): moving,
-        NormalEvent(ON_KEY_PRESS, pkey.K): moving,
-        NormalEvent(ON_KEY_PRESS, pkey.L): moving,
-        NormalEvent(ON_KEY_PRESS, pkey.M): marking,
-        NormalEvent(ON_KEY_PRESS, pkey.S): scale_grid,
-        NormalEvent(ON_KEY_PRESS, pkey.S, pkey.MOD_SHIFT): scale_grid,
-        NormalEvent(ON_KEY_PRESS, pkey.SEMICOLON, pkey.MOD_SHIFT): switch_to_ex_mode,
-    };
+    """
+    Accepts normal events and dispatches them to the correct state.
+    ESCAPE resets the current state.
+    Digits act as multipliers to be applied to the next command.
+    A modifier key alone does not transition to a new state.
+    """
 
     current_state = None
 
@@ -224,9 +252,9 @@ def construct_dispatcher(app):
             def state(app, event):
                 # do stuff
                 while True:
-                    event = yield;
+                    event = yield
                     # handle events
                     if is_done_handling_events_event: return
 
     """
-    return init_state(default_state, app, None);
+    return init_state(default_state, app, None)
